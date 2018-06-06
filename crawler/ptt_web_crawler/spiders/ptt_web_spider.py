@@ -21,8 +21,7 @@ class PttWebSpider(scrapy.Spider):
     name = 'ptt-web'
     allowed_domains = ['ptt.cc']
 
-    def __init__(self,
-                 board='Gossiping',
+    def __init__(self, board='Gossiping',
                  pages=None,
                  dates=None,
                  article_id=None,
@@ -39,7 +38,6 @@ class PttWebSpider(scrapy.Spider):
         self.article_id = article_id
         self.pages = None
         self.dates = None
-        self.max_requests = None
 
         self.url = '{}/bbs/{}/index.html'.format(self._domain, self.board)
         self.saved_repo = os.path.abspath(os.sep.join(['data', self.board]))
@@ -61,9 +59,6 @@ class PttWebSpider(scrapy.Spider):
             if len(page_index) == 2 and all([i.isdigit() or i == '-1' for i in page_index]):
                 self.pages = (int(page_index[0]), int(page_index[1]))
 
-        if max_requests and max_requests.isdigit() and int(max_requests) > 0:
-            self.max_requests = int(max_requests)
-
     def ptt_article_ptime(self, date_string):
         try:
             return datetime.datetime.strptime(date_string, '%a %b %d %H:%M:%S %Y')
@@ -76,12 +71,12 @@ class PttWebSpider(scrapy.Spider):
         except Exception as e:
             self.logger.exception('{}'.format(e))
 
-    def ISO8061_ftime(self, datetime_object):
-        try:
-            assert isinstance(datetime_object, datetime.date)
-            return datetime_object.strftime('%Y%m%d')
-        except Exception as e:
-            self.logger.exception('{}'.format(e))
+    # def ISO8061_ftime(self, datetime_object):
+    #     try:
+    #         assert isinstance(datetime_object, datetime.date)
+    #         return datetime_object.strftime('%Y%m%d')
+    #     except Exception as e:
+    #         self.logger.exception('{}'.format(e))
 
     def start_requests(self):
         yield scrapy.Request(
@@ -91,7 +86,7 @@ class PttWebSpider(scrapy.Spider):
             cookies=self._cookies)
 
     def request_by_article_id(self, article_id):
-        self.logger.info('Processing article {}'.format(article_id))
+        self.logger.debug('Processing article {}'.format(article_id))
         url = '{}/bbs/{}/{}.html'.format(self._domain, self.board, article_id)
         return scrapy.Request(
             url=url,
@@ -130,7 +125,7 @@ class PttWebSpider(scrapy.Spider):
         '''
 
         # if showing the over-18 alert
-        if len(response.xpath('//div[@class="over18-notice"]')) > 0:
+        if len(response.xpath("//div[@class='over18-notice']")) > 0:
             requests_retries = 0
             if requests_retries < self.setting.attributes['REQUEST_RETRY_MAX'].value:
                 requests_retries += 1
@@ -151,7 +146,6 @@ class PttWebSpider(scrapy.Spider):
         # parse by article id
         if self.article_id:
             yield self.request_by_article_id(self.article_id)
-
         # parse by dates
         elif self.dates:
             if not self.search_index:
@@ -167,10 +161,11 @@ class PttWebSpider(scrapy.Spider):
                 self.logger.exception('{}'.format(e))
             for i in range(begin_index, end_index + 1):
                 yield self.request_by_index(i)
-
         # parse by pages
         else:
             begin_index, end_index = self.pages
+            if end_index == -1:
+                end_index = self.last_page_index
             for i in range(begin_index, end_index + 1):
                 yield self.request_by_index(i)
 
@@ -215,7 +210,7 @@ class PttWebSpider(scrapy.Spider):
 
         try:
             ip = main_content.find(text=re.compile(u'※ 發信站:'))
-            ip = re.search(r'[0-9]*.[0-9]*.[0-9]*.[0-9]*', ip).group()
+            ip = re.search('[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*', ip).group()
         except:
             ip = "None"
 
@@ -299,7 +294,7 @@ class PttWebSpider(scrapy.Spider):
             try:
                 url = '{}{}'.format(self._domain, div.find('a')['href'])
                 article_id = re.sub(r'.html', '', url.split('/')[-1])
-                self.logger.info('Processing article {}'.format(article_id))
+                self.logger.debug('Processing article {}'.format(article_id))
                 yield scrapy.Request(
                     url=url,
                     callback=self.parse_article,

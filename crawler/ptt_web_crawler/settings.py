@@ -22,12 +22,12 @@ NEWSPIDER_MODULE = 'ptt_web_crawler.spiders'
 ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-#CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS = 64
 
 # Configure a delay for requests for the same website (default: 0)
 # See http://scrapy.readthedocs.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 1.25
+DOWNLOAD_DELAY = 0.1
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -65,7 +65,8 @@ EXTENSIONS = {
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'ptt_web_crawler.pipelines.PttWebCrawlerPipeline': 300,
+   # 'ptt_web_crawler.pipelines.PttWebCrawlerPipeline': 300,
+   'scrapyelasticsearch.scrapyelasticsearch.ElasticSearchPipeline': 500,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -92,5 +93,14 @@ ITEM_PIPELINES = {
 # Revalidate stale responses based on ETag response header
 HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.RFC2616Policy'
 
-# user defined constant
+# User defined constant
 REQUEST_RETRY_MAX = 10
+LOG_LEVEL = 'INFO'
+
+# ES
+ELASTICSEARCH_SERVERS = ['http://13.78.22.236:9200']
+ELASTICSEARCH_INDEX = 'ptt'
+ELASTICSEARCH_INDEX_DATE_FORMAT = '%Y-%m'
+ELASTICSEARCH_TYPE = 'items'
+ELASTICSEARCH_BUFFER_LENGTH = 500
+# ELASTICSEARCH_UNIQ_KEY = 'url'  # Custom unique key
