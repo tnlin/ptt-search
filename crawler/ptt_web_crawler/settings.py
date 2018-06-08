@@ -22,7 +22,7 @@ NEWSPIDER_MODULE = 'ptt_web_crawler.spiders'
 ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 64
+CONCURRENT_REQUESTS = 128
 
 # Configure a delay for requests for the same website (default: 0)
 # See http://scrapy.readthedocs.org/en/latest/topics/settings.html#download-delay
@@ -98,9 +98,11 @@ REQUEST_RETRY_MAX = 10
 LOG_LEVEL = 'INFO'
 
 # ES
-ELASTICSEARCH_SERVERS = ['http://13.78.22.236:9200']
-ELASTICSEARCH_INDEX = 'ptt'
+ELASTICSEARCH_SERVERS = ['http://13.78.14.166:9200']
+# ELASTICSEARCH_INDEX = 'ptt'
+# ELASTICSEARCH_TYPE = 'items'
+ELASTICSEARCH_INDEX = 'test'
+ELASTICSEARCH_TYPE = 'doc'
 ELASTICSEARCH_INDEX_DATE_FORMAT = '%Y-%m'
-ELASTICSEARCH_TYPE = 'items'
-ELASTICSEARCH_BUFFER_LENGTH = 500
+ELASTICSEARCH_BUFFER_LENGTH = 200
 # ELASTICSEARCH_UNIQ_KEY = 'url'  # Custom unique key

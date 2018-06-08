@@ -14,6 +14,7 @@ class PttWebCrawlerItem(scrapy.Item):
     article_title = scrapy.Field()
     author = scrapy.Field()
     date = scrapy.Field()
+    date_parsed = scrapy.Field()
     content = scrapy.Field()
     ip = scrapy.Field()
     message_count = scrapy.Field()

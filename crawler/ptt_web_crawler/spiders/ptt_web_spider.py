@@ -1,11 +1,8 @@
-import datetime
 import os
 import re
-
 import requests
 from bs4 import BeautifulSoup
 from six import u
-
 import scrapy
 from ptt_web_crawler.items import PttWebCrawlerItem
 from scrapy.conf import settings
@@ -15,7 +12,9 @@ from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError
 from twisted.internet.error import TCPTimedOutError
 from twisted.internet.error import TimeoutError
-
+from datetime import datetime
+from dateutil import tz
+import re
 
 class PttWebSpider(scrapy.Spider):
     name = 'ptt-web'
@@ -61,22 +60,16 @@ class PttWebSpider(scrapy.Spider):
 
     def ptt_article_ptime(self, date_string):
         try:
-            return datetime.datetime.strptime(date_string, '%a %b %d %H:%M:%S %Y')
+            return datetime.strptime(date_string, '%a %b %d %H:%M:%S %Y')
         except Exception as e:
             self.logger.exception('{}'.format(e))
 
     def ISO8061_ptime(self, date_string):
         try:
-            return datetime.datetime.strptime(date_string, '%Y%m%d')
+            return datetime.strptime(date_string, '%Y%m%d')
         except Exception as e:
             self.logger.exception('{}'.format(e))
 
-    # def ISO8061_ftime(self, datetime_object):
-    #     try:
-    #         assert isinstance(datetime_object, datetime.date)
-    #         return datetime_object.strftime('%Y%m%d')
-    #     except Exception as e:
-    #         self.logger.exception('{}'.format(e))
 
     def start_requests(self):
         yield scrapy.Request(
@@ -278,8 +271,10 @@ class PttWebSpider(scrapy.Spider):
         data['article_title'] = title
         data['author'] = author
         data['date'] = date
+        data['date_parsed'] = self.parse_date(date)
         data['content'] = content
-        data['ip'] = ip
+        if ip:
+            data['ip'] = ip
         data['message_count'] = message_count
         data['messages'] = messages
 
@@ -320,7 +315,7 @@ class PttWebSpider(scrapy.Spider):
         :params index       index to begin with
         :params step        steps to search
         '''
-        assert isinstance(target_dt, datetime.datetime)
+        assert isinstance(target_dt, datetime)
 
         # current page
         page_url = '{}/bbs/{}/index{}.html'.format(self._domain, self.board, index)
@@ -413,3 +408,20 @@ class PttWebSpider(scrapy.Spider):
                 last_date = last_date.text.strip(' ')
                 last_date = datetime.strptime(last_date, '%m/%d')
                 return last_date
+
+    def parse_date(self, date):
+        try:
+            if len(date.split('.')) > 1:
+                dates = date.split(' ')
+                dates[1] = re.sub("\D", "", dates[1])
+                dates[3] = dates[3].split('.')[0]
+                date = " ".join(dates)
+                date = datetime.strptime(date, '%B %d %Y, %H:%M:%S')
+            else:
+                date = date[date.find(" ") + 1:]
+                date = datetime.strptime(date, '%b %d %H:%M:%S %Y')
+
+            tzinfo = tz.gettz('Asia/Taipei')
+            return date.replace(tzinfo=tzinfo).isoformat()
+        except Exception as e:
+            self.logger.exception('{}'.format(e))
