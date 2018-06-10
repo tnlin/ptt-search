@@ -13,6 +13,7 @@ class PttWebCrawlerItem(scrapy.Item):
     article_id = scrapy.Field()
     article_title = scrapy.Field()
     author = scrapy.Field()
+    author_parsed = scrapy.Field()
     date = scrapy.Field()
     date_parsed = scrapy.Field()
     content = scrapy.Field()

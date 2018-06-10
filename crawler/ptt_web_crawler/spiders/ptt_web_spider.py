@@ -261,6 +261,7 @@ class PttWebSpider(scrapy.Spider):
         message_count = {
             'all': p + b + n,
             'count': p - b,
+            'controversial': min(p, b),
             'push': p,
             'boo': b,
             "neutral": n
@@ -270,6 +271,7 @@ class PttWebSpider(scrapy.Spider):
         data['article_id'] = article_id
         data['article_title'] = title
         data['author'] = author
+        data['author_parsed'] = author.split(" ")[0]
         data['date'] = date
         data['date_parsed'] = self.parse_date(date)
         data['content'] = content
