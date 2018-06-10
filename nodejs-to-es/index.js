@@ -12,12 +12,15 @@ async function makeQuery(q) {
         // console.log(response.hits.hits)
 
         for (const hit of response.hits.hits) {
+            href ='https://www.ptt.cc/bbs/' + hit._source.board + '/' + hit._source.article_id + '.html'
             console.log(
                 hit._source.message_count.count,
                 hit._source.article_title,
                 hit._source.author,
                 hit._score,
-                hit._source.date_parsed);
+                hit._source.date_parsed,
+                href,
+            );
         }
   } catch (err) {
     console.error(err)
