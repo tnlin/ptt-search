@@ -7,7 +7,7 @@ var client = new elasticsearch.Client({
 async function makeQuery(q) {
     try {
         const response = await client.search(q)
-        // console.log(response)
+        console.log(response)
         // console.log(response.hits)
         // console.log(response.hits.hits)
 
@@ -18,6 +18,7 @@ async function makeQuery(q) {
                 hit._source.article_title,
                 hit._source.author,
                 hit._score,
+                // hit._source.messages,
                 hit._source.date_parsed,
                 href,
             );
@@ -28,15 +29,20 @@ async function makeQuery(q) {
 }
 
 
-
+const keyword = '西瓜夏天'
 q = {
     index: 'ptt-2018-06',
     // sort: 'date_parsed:desc',
     type: 'article',
     body: {
         query: {
-            match: {
-                article_title: '西瓜夏天'
+            // match: {
+            //     article_title: '西瓜夏天'
+            // }
+            multi_match: {
+                query: keyword,
+                fields: [ "article_title^3", "content" ],
+                tie_breaker: 0.3
             }
         }
     }
