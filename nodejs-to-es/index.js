@@ -6,22 +6,11 @@ var client = new elasticsearch.Client({
 
 async function makeQuery(q) {
     try {
-        q = {
-          index: 'test-2018-06',
-          sort: 'date_parsed:desc',
-          type: 'doc',
-          body: {
-            query: {
-              match: {
-                article_title: '西瓜 夏天'
-              }
-            }
-          }
-        }
-
         const response = await client.search(q)
+        // console.log(response)
+        // console.log(response.hits)
+        // console.log(response.hits.hits)
 
-        console.log(response)
         for (const hit of response.hits.hits) {
             console.log(
                 hit._source.message_count.count,
@@ -30,11 +19,25 @@ async function makeQuery(q) {
                 hit._score,
                 hit._source.date_parsed);
         }
-
-        // console.log(response.hits.hits)
   } catch (err) {
     console.error(err)
   }
 }
 
-makeQuery('*')
+
+
+q = {
+    index: 'ptt-2018-06',
+    // sort: 'date_parsed:desc',
+    type: 'article',
+    body: {
+        query: {
+            match: {
+                article_title: '西瓜夏天'
+            }
+        }
+    }
+}
+
+response = makeQuery(q)
+
