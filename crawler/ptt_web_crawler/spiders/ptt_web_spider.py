@@ -258,27 +258,46 @@ class PttWebSpider(scrapy.Spider):
                 n += 1
 
         # count: 推噓文相抵後的數量; all: 推文總數
-        message_count = {
-            'all': p + b + n,
-            'count': p - b,
-            'controversial': min(p, b),
-            'push': p,
-            'boo': b,
-            "neutral": n
-        }
+        # message_count = {
+        #     'all': p + b + n,
+        #     'count': p - b,
+        #     'controversial': min(p, b),
+        #     'push': p,
+        #     'boo': b,
+        #     "neutral": n
+        # }
+
 
         data['board'] = self.board
         data['article_id'] = article_id
         data['article_title'] = title
         data['author'] = author
-        data['author_parsed'] = author.split(" ")[0]
         data['date'] = date
-        data['date_parsed'] = self.parse_date(date)
         data['content'] = content
+
+        data['messages'] = messages
+        # data['message_count'] = message_count
+        data['message_count_all'] = p + b + n
+        data['message_count_count'] = p - b
+        data['message_count_controversial'] = min(p, b)
+        data['message_count_push'] = p
+        data['message_count_boo'] = b
+        data['message_count_neutral'] = n
+
+        author_parsed = author.split(" ")[0]
+        if author_parsed:
+            data['author_parsed'] = author_parsed
+
+        img_url = self.parse_img_url(main_content)
+        if img_url:
+            data['img_url'] = img_url
+
+        date_parsed = self.parse_date(date)
+        if date_parsed:
+            data['date_parsed'] = date_parsed
+
         if ip:
             data['ip'] = ip
-        data['message_count'] = message_count
-        data['messages'] = messages
 
         yield data
 
@@ -427,3 +446,12 @@ class PttWebSpider(scrapy.Spider):
             return date.replace(tzinfo=tzinfo).isoformat()
         except Exception as e:
             self.logger.exception('{}'.format(e))
+
+    def parse_img_url(self, main_content):
+        rule = '(?:http\:|https\:)?\/\/.*\.(?:png|jpe?g|gif)'
+        items = main_content.find_all('a')
+        if items:
+            for item in items:
+                url = re.findall(rule, item['href'])
+                if url:
+                    return url[0]
