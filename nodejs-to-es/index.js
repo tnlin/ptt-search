@@ -1,6 +1,7 @@
 var elasticsearch = require('elasticsearch');
 var client = new elasticsearch.Client({
-    host: '13.78.14.166:9200',
+    // host: '13.78.14.166:9200',
+    host: '168.62.50.20:9200',
     // log: 'trace'
 });
 
@@ -11,17 +12,24 @@ async function makeQuery(q) {
         // console.log(response.hits)
         // console.log(response.hits.hits)
 
-        for (const hit of response.hits.hits) {
+        for (hit of response.hits.hits) {
             href ='https://www.ptt.cc/bbs/' + hit._source.board + '/' + hit._source.article_id + '.html'
             console.log(
-                hit._source.message_count.count,
+                hit._source.message_count_count,
                 hit._source.article_title,
                 hit._source.author,
                 hit._score,
-                // hit._source.messages,
                 hit._source.date_parsed,
-                href,
+                href
             );
+            // for (message of hit._source.messages){
+            //     console.log(
+            //         message.push_tag,
+            //         message.push_userid,
+            //         message.push_content,
+            //         message.push_ipdatetime,
+            //     );
+            // }
         }
   } catch (err) {
     console.error(err)
@@ -29,7 +37,7 @@ async function makeQuery(q) {
 }
 
 
-const keyword = '西瓜夏天'
+const keyword = '女'
 
 q = {
     index: 'ptt-2018-06',
@@ -62,16 +70,16 @@ q = {
     }
 }
 
-sort_by = "date"
-date_filter = "30d"
+sort_by = 'count'
+date_filter = ""
 // board_filter = "WomenTalk"
 
 if(sort_by=='date'){
     q.sort = ['date_parsed:desc', '_score']
 } else if(sort_by=='count'){
-    q.sort = ['message_count.count:desc', '_score']
+    q.sort = ['message_count_count:desc', '_score']
 } else if(sort_by=='controversial'){
-    q.sort = ['message_count.controversial:desc', '_score']
+    q.sort = ['message_count_controversial:desc', '_score']
 }
 
 if(date_filter=='1d'){

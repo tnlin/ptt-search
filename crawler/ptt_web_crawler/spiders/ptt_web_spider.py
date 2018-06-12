@@ -266,7 +266,7 @@ class PttWebSpider(scrapy.Spider):
         #     'boo': b,
         #     "neutral": n
         # }
-
+        # data['message_count'] = message_count
 
         data['board'] = self.board
         data['article_id'] = article_id
@@ -276,13 +276,12 @@ class PttWebSpider(scrapy.Spider):
         data['content'] = content
 
         data['messages'] = messages
-        # data['message_count'] = message_count
-        data['message_count_all'] = p + b + n
-        data['message_count_count'] = p - b
-        data['message_count_controversial'] = min(p, b)
-        data['message_count_push'] = p
-        data['message_count_boo'] = b
-        data['message_count_neutral'] = n
+        data['message_all'] = p + b + n
+        data['message_count'] = p - b
+        data['message_controversial'] = min(p, b)
+        data['message_push'] = p
+        data['message_boo'] = b
+        data['message_neutral'] = n
 
         author_parsed = author.split(" ")[0]
         if author_parsed:

@@ -18,13 +18,12 @@ class PttWebCrawlerItem(scrapy.Item):
 
     messages = scrapy.Field()
     # message_count = scrapy.Field()
-    message_count_all = scrapy.Field()
-    message_count_count = scrapy.Field()
-    message_count_controversial = scrapy.Field()
-    message_count_push = scrapy.Field()
-    message_count_boo = scrapy.Field()
-    message_count_neutral = scrapy.Field()
-
+    message_all = scrapy.Field()
+    message_count = scrapy.Field()
+    message_controversial = scrapy.Field()
+    message_push = scrapy.Field()
+    message_boo = scrapy.Field()
+    message_neutral = scrapy.Field()
 
     author_parsed = scrapy.Field()
     img_url = scrapy.Field()
