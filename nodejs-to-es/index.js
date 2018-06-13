@@ -13,23 +13,22 @@ async function makeQuery(q) {
         // console.log(response.hits.hits)
 
         for (hit of response.hits.hits) {
+
             href ='https://www.ptt.cc/bbs/' + hit._source.board + '/' + hit._source.article_id + '.html'
+
+            var article = hit._source.article_title
+            if(hit.highlight){
+                article = hit.highlight.article_title[0]
+            }
+
             console.log(
                 hit._source.message_count_count,
-                hit._source.article_title,
+                article,
                 hit._source.author,
                 hit._score,
                 hit._source.date_parsed,
                 href
             );
-            // for (message of hit._source.messages){
-            //     console.log(
-            //         message.push_tag,
-            //         message.push_userid,
-            //         message.push_content,
-            //         message.push_ipdatetime,
-            //     );
-            // }
         }
   } catch (err) {
     console.error(err)
@@ -37,7 +36,11 @@ async function makeQuery(q) {
 }
 
 
-const keyword = '女'
+keyword = '台北美食'
+sort_by = ''
+date_filter = '7d'
+// board_filter = "WomenTalk"
+
 
 q = {
     index: 'ptt-2018-06',
@@ -46,11 +49,13 @@ q = {
     size: 20,
     body: {
         query: {
+
             bool: {
                 must: {
                     multi_match: {
                         query: keyword,
                         fields: ["article_title^3", "content"],
+                        cutoff_frequency: 0.001,
                         tie_breaker: 0.3
                     }
                 },
@@ -66,13 +71,20 @@ q = {
                     }
                 }
             }
+            // match : { article_title: keyword }
+        },
+        highlight: {
+            pre_tags: ["<span class=highlight>"],
+            post_tags: ["</span>"],
+            fragment_size: 80,
+            no_match_size: 0,
+            fields: {
+                article_title: {}
+            }
         }
     }
 }
 
-sort_by = 'count'
-date_filter = ""
-// board_filter = "WomenTalk"
 
 if(sort_by=='date'){
     q.sort = ['date_parsed:desc', '_score']
