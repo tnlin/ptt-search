@@ -10,8 +10,8 @@ async function makeQuery(q) {
         const response = await client.search(q)
         // console.log(response)
         // console.log(response.hits)
-        // console.log(response.hits.hits)
 
+        console.log(response.hits.total)
         for (hit of response.hits.hits) {
 
             href ='https://www.ptt.cc/bbs/' + hit._source.board + '/' + hit._source.article_id + '.html'
@@ -22,10 +22,11 @@ async function makeQuery(q) {
             }
 
             console.log(
-                hit._source.message_count_count,
+                hit._source.message_count,
+                hit._source[sort_by],
+                hit._source.board,
                 article,
                 hit._source.author,
-                hit._score,
                 hit._source.date_parsed,
                 href
             );
@@ -36,47 +37,48 @@ async function makeQuery(q) {
 }
 
 
-keyword = '台北美食'
-sort_by = ''
-date_filter = '7d'
-// board_filter = "WomenTalk"
+user_input = '蔡英文'
+
+sort_by = 'message_count' // date_parsed, message_controversial, message_all, message_count
+sort_type = 'desc' // desc, asc
+
+date_filter = '' // 7d, 30d, 365d
+board_filter = '' // Gossiping, Womentalk
 
 
 q = {
     index: 'ptt-2018-06',
-    // sort: ['date_parsed:desc', '_score'],
     type: 'article',
-    size: 20,
+    size: 30,
+    // sort: ['date_parsed:desc', '_score'],
+
     body: {
         query: {
-
             bool: {
                 must: {
                     multi_match: {
-                        query: keyword,
+                        query: user_input,
                         fields: ["article_title^3", "content"],
-                        cutoff_frequency: 0.001,
+                        cutoff_frequency: 0.0005,
                         tie_breaker: 0.3
                     }
                 },
-                filter: {
-                    // term: {
-                    //     board: "*"
-                    // },
-                    range: {
+                filter: [
+                    {range:{
                         date_parsed: {
                             // gte: "now-7d/d",
                             lt: "now/d"
-                        }
-                    }
-                }
+                        }}
+                    },
+                ]
             }
+            // match_all: {}
             // match : { article_title: keyword }
         },
         highlight: {
             pre_tags: ["<span class=highlight>"],
             post_tags: ["</span>"],
-            fragment_size: 80,
+            fragment_size: 100,
             no_match_size: 0,
             fields: {
                 article_title: {}
@@ -86,30 +88,27 @@ q = {
 }
 
 
-if(sort_by=='date'){
-    q.sort = ['date_parsed:desc', '_score']
-} else if(sort_by=='count'){
-    q.sort = ['message_count_count:desc', '_score']
-} else if(sort_by=='controversial'){
-    q.sort = ['message_count_controversial:desc', '_score']
+if(sort_by != "") {
+    s = sort_by + ':' + sort_type
+    q.sort = [s, '_score']
 }
 
 if(date_filter=='1d'){
-    q.body.query.bool.filter.range.date_parsed.gte = "now-1d/d"
+    q.body.query.bool.filter[0].range.date_parsed.gte = "now-1d/d"
 } else if(date_filter=='7d'){
-    q.body.query.bool.filter.range.date_parsed.gte = "now-7d/d"
+    q.body.query.bool.filter[0].range.date_parsed.gte = "now-7d/d"
 } else if(date_filter=='30d'){
-    q.body.query.bool.filter.range.date_parsed.gte = "now-30d/d"
+    q.body.query.bool.filter[0].range.date_parsed.gte = "now-30d/d"
 } else if(date_filter=='365d'){
-    q.body.query.bool.filter.range.date_parsed.gte = "now-365d/d"
+    q.body.query.bool.filter[0].range.date_parsed.gte = "now-365d/d"
 }
 
-// if(board_filter != ""){
-//     q.body.query.bool.filter.term = {"board": "WomenTalk"}
-// }
+if(board_filter != ""){
+    q.body.query.bool.filter.push({term: {"board": board_filter}})
+}
 
 
-console.log(q, q.body.query.bool)
+console.log(q, q.body.query.bool, q.body.query.filter)
 
 response = makeQuery(q)
 
